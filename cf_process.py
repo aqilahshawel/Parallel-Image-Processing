@@ -1,5 +1,5 @@
 # ==========================================
-# FILE 2: cf_process.py
+# FILE: cf_process.py
 # ==========================================
 
 import cv2
@@ -10,9 +10,10 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 INPUT_ROOT_DIR = "food-101"
-OUTPUT_ROOT_DIR = "food-101_processed_cf_process"
+OUTPUT_ROOT_DIR = "food-101_processed_cfp"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
-DEFAULT_LIMIT = 1000
+DEFAULT_LIMIT = 5
+MIN_WORKERS = 2
 
 def process_single_image(args):
     """
@@ -69,12 +70,19 @@ def process_single_image(args):
 def main():
     parser = argparse.ArgumentParser(description="Concurrent Futures ProcessPoolExecutor")
     parser.add_argument("--workers", type=int, default=0,
-                       help="Number of workers (0 = CPU cores, 1 = sequential)")
+                       help=f"Number of workers (0 = CPU cores, minimum {MIN_WORKERS})")
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT,
                        help="Max images per category")
     args = parser.parse_args()
 
-    num_workers = args.workers if args.workers > 0 else os.cpu_count()
+    # Determine number of workers (minimum 2 for parallel execution)
+    if args.workers == 0:
+        num_workers = os.cpu_count()
+    else:
+        num_workers = max(args.workers, MIN_WORKERS)
+    
+    if args.workers > 0 and args.workers < MIN_WORKERS:
+        print(f"Warning: Minimum workers is {MIN_WORKERS}. Setting workers to {MIN_WORKERS}.")
 
     print("=" * 60)
     print("CONCURRENT.FUTURES PROCESSPOOLEXECUTOR")
@@ -119,16 +127,13 @@ def main():
     # Assign worker IDs to tasks (round-robin)
     task_args = [(task, (idx % num_workers) + 1) for idx, task in enumerate(tasks)]
     
-    if num_workers == 1:
-        results = [process_single_image(arg) for arg in task_args]
-    else:
-        # ProcessPoolExecutor with futures for flexible task management
-        with ProcessPoolExecutor(max_workers=num_workers) as executor:
-            futures = {executor.submit(process_single_image, arg): arg 
-                      for arg in task_args}
-            
-            for future in as_completed(futures):
-                results.append(future.result())
+    # ProcessPoolExecutor with futures for flexible task management
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        futures = {executor.submit(process_single_image, arg): arg 
+                  for arg in task_args}
+        
+        for future in as_completed(futures):
+            results.append(future.result())
     
     end_time = time.time()
 

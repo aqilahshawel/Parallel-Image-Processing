@@ -1,5 +1,5 @@
 # ==========================================
-# FILE 1: multiprocessing_pipeline.py
+# FILE: mp_paradigm.py
 # ==========================================
 
 import cv2
@@ -13,7 +13,8 @@ from multiprocessing import Pool
 INPUT_ROOT_DIR = "food-101"
 OUTPUT_ROOT_DIR = "food-101_processed_mp"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
-DEFAULT_LIMIT = 1000
+DEFAULT_LIMIT = 5
+MIN_WORKERS = 2
 
 def process_single_image(args):
     """
@@ -70,12 +71,19 @@ def process_single_image(args):
 def main():
     parser = argparse.ArgumentParser(description="Multiprocessing Pool Pipeline")
     parser.add_argument("--workers", type=int, default=0, 
-                       help="Number of workers (0 = CPU cores, 1 = sequential)")
+                       help=f"Number of workers (0 = CPU cores, minimum {MIN_WORKERS})")
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT,
                        help="Max images per category")
     args = parser.parse_args()
 
-    num_workers = args.workers if args.workers > 0 else multiprocessing.cpu_count()
+    # Determine number of workers (minimum 2 for parallel execution)
+    if args.workers == 0:
+        num_workers = multiprocessing.cpu_count()
+    else:
+        num_workers = max(args.workers, MIN_WORKERS)
+    
+    if args.workers > 0 and args.workers < MIN_WORKERS:
+        print(f"Warning: Minimum workers is {MIN_WORKERS}. Setting workers to {MIN_WORKERS}.")
 
     print("=" * 60)
     print("MULTIPROCESSING POOL IMPLEMENTATION")
@@ -120,11 +128,8 @@ def main():
     task_args = [(task, (idx % num_workers) + 1) for idx, task in enumerate(tasks)]
     
     # Execute with Pool (automatic load balancing)
-    if num_workers == 1:
-        results = [process_single_image(arg) for arg in task_args]
-    else:
-        with Pool(processes=num_workers) as pool:
-            results = pool.map(process_single_image, task_args)
+    with Pool(processes=num_workers) as pool:
+        results = pool.map(process_single_image, task_args)
     
     end_time = time.time()
 

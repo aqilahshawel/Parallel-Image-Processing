@@ -1,5 +1,5 @@
 # ==========================================
-# FILE 3: cf_thread.py
+# FILE: cf_thread.py
 # ==========================================
 
 import cv2
@@ -10,9 +10,10 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 INPUT_ROOT_DIR = "food-101"
-OUTPUT_ROOT_DIR = "food-101_processed_cf_thread"
+OUTPUT_ROOT_DIR = "food-101_processed_cft"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
-DEFAULT_LIMIT = 1000
+DEFAULT_LIMIT = 5
+MIN_WORKERS = 2
 
 def process_single_image(args):
     """
@@ -69,7 +70,7 @@ def process_single_image(args):
 def main():
     parser = argparse.ArgumentParser(description="Concurrent Futures ThreadPoolExecutor")
     parser.add_argument("--workers", type=int, default=0,
-                       help="Number of workers (0 = CPU cores * 2, 1 = sequential)")
+                       help=f"Number of workers (0 = CPU cores * 2, minimum {MIN_WORKERS})")
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT,
                        help="Max images per category")
     args = parser.parse_args()
@@ -77,7 +78,15 @@ def main():
     # Threads can exceed CPU cores for I/O-bound portions
     max_cores = os.cpu_count()
     default_threads = max_cores * 2
-    num_workers = args.workers if args.workers > 0 else default_threads
+    
+    # Determine number of workers (minimum 2 for parallel execution)
+    if args.workers == 0:
+        num_workers = default_threads
+    else:
+        num_workers = max(args.workers, MIN_WORKERS)
+    
+    if args.workers > 0 and args.workers < MIN_WORKERS:
+        print(f"Warning: Minimum workers is {MIN_WORKERS}. Setting workers to {MIN_WORKERS}.")
 
     print("=" * 60)
     print("CONCURRENT.FUTURES THREADPOOLEXECUTOR")
@@ -123,16 +132,13 @@ def main():
     # Assign worker IDs to tasks (round-robin)
     task_args = [(task, (idx % num_workers) + 1) for idx, task in enumerate(tasks)]
     
-    if num_workers == 1:
-        results = [process_single_image(arg) for arg in task_args]
-    else:
-        # ThreadPoolExecutor for thread-based parallelism
-        with ThreadPoolExecutor(max_workers=num_workers) as executor:
-            futures = {executor.submit(process_single_image, arg): arg
-                      for arg in task_args}
-            
-            for future in as_completed(futures):
-                results.append(future.result())
+    # ThreadPoolExecutor for thread-based parallelism
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = {executor.submit(process_single_image, arg): arg
+                  for arg in task_args}
+        
+        for future in as_completed(futures):
+            results.append(future.result())
     
     end_time = time.time()
 
