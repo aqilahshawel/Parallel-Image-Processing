@@ -9,7 +9,7 @@ import time
 import argparse
 
 INPUT_ROOT_DIR = "food-101"
-OUTPUT_ROOT_DIR = "food-101_processed_seq"
+OUTPUT_ROOT_DIR = "food-101_processed_sequential"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
 DEFAULT_LIMIT = 1000
 

@@ -11,9 +11,9 @@ import multiprocessing
 from multiprocessing import Pool
 
 INPUT_ROOT_DIR = "food-101"
-OUTPUT_ROOT_DIR = "food-101_processed_mp"
+OUTPUT_ROOT_DIR = "food-101_processed_multiprocessing"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
-DEFAULT_LIMIT = 5
+DEFAULT_LIMIT = 1000
 MIN_WORKERS = 2
 
 def process_single_image(args):

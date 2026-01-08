@@ -10,9 +10,9 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 INPUT_ROOT_DIR = "food-101"
-OUTPUT_ROOT_DIR = "food-101_processed_cft"
+OUTPUT_ROOT_DIR = "food-101_processed_concurrent_futures_thread"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
-DEFAULT_LIMIT = 5
+DEFAULT_LIMIT = 1000
 MIN_WORKERS = 2
 
 def process_single_image(args):
