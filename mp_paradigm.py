@@ -13,7 +13,7 @@ from multiprocessing import Pool
 INPUT_ROOT_DIR = "food-101"
 OUTPUT_ROOT_DIR = "food-101_processed_mp"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
-DEFAULT_LIMIT = 5
+DEFAULT_LIMIT = 1000
 
 def process_single_image(args):
     """

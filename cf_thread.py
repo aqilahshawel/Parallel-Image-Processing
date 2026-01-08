@@ -10,7 +10,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 INPUT_ROOT_DIR = "food-101"
-OUTPUT_ROOT_DIR = "food-101_processed_cft"
+OUTPUT_ROOT_DIR = "food-101_processed_cf_thread"
 SELECTED_CATEGORIES = ["pizza", "sushi", "hamburger", "samosa"]
 DEFAULT_LIMIT = 5
 
