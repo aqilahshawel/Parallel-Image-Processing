@@ -1,4 +1,4 @@
-## CST435 Assignment 2 – Parallel Image Processing
+ Parallel Image Processing
 
 This repository implements a small image-processing pipeline to compare different execution paradigms in Python:
 
